@@ -36,6 +36,8 @@
 #include <linux/arm-smccc.h>
 #endif
 
+
+
 #include "smccc_test.h"
 
 #define MODULE_NAME 		"smccc_test"
@@ -73,6 +75,18 @@ MODULE_LICENSE("GPL");
 #define SMCCC_PCI_SEG_INFO	SMCCC_PCI_CALL_VAL(0x134)
 #endif
 
+#ifndef SMCCC_VERSION
+#define SMCCC_VERSION	0x80000000
+#endif
+
+#ifndef SMCCC_ARCH_FEATURES
+#define SMCCC_ARCH_FEATURES	0x80000001
+#endif
+
+#ifndef SMCCC_ARCH_SOC_ID
+#define SMCCC_ARCH_SOC_ID	0x80000002
+#endif
+
 /*
  *  smccc_test_copy_to_user()
  *	copy arm_res a* registers to user space test_arg w array
@@ -95,6 +109,7 @@ static int smccc_test_copy_to_user(unsigned long arg, struct arm_smccc_res *arm_
 
 	return 0;
 }
+
 
 /*
  *  smccc_test_copy_from_user()
@@ -147,6 +162,47 @@ static long smccc_test_pci_get_seg_info(unsigned long arg)
 	return smccc_test_copy_to_user(arg, &arm_res, conduit);
 }
 
+static long smccc_test_version(unsigned long arg)
+{
+	struct arm_smccc_res arm_res = { };
+	int conduit;
+
+	conduit = arm_smccc_1_1_invoke(SMCCC_VERSION, 0, 0, 0, 0, 0, 0, 0, &arm_res);
+
+	return smccc_test_copy_to_user(arg, &arm_res, conduit);
+}
+
+static long smccc_test_arch_features(unsigned long arg)
+{
+	struct arm_smccc_res arm_res = { };
+	struct smccc_test_arg test_arg;
+	int ret, conduit;
+
+	ret = smccc_test_copy_from_user(&test_arg, arg);
+	if (ret)
+		return ret;
+
+	conduit = arm_smccc_1_1_invoke(SMCCC_ARCH_FEATURES, test_arg.w[1], 0, 0, 0, 0, 0, 0, &arm_res);
+
+	return smccc_test_copy_to_user(arg, &arm_res, conduit);
+}
+
+static long smccc_test_arch_soc_id(unsigned long arg)
+{
+	struct arm_smccc_res arm_res = { };
+	struct smccc_test_arg test_arg;
+	int ret, conduit;
+
+	ret = smccc_test_copy_from_user(&test_arg, arg);
+	if (ret)
+		return ret;
+
+	conduit = arm_smccc_1_1_invoke(SMCCC_ARCH_SOC_ID, test_arg.w[1], 0, 0, 0, 0, 0, 0, &arm_res);
+
+	return smccc_test_copy_to_user(arg, &arm_res, conduit);
+}
+
+
 static long smccc_test_ioctl(struct file *file, unsigned int cmd,
 			     unsigned long arg)
 {
@@ -171,6 +227,12 @@ static long smccc_test_ioctl(struct file *file, unsigned int cmd,
 		return -ENOTSUPP;
 	case SMCCC_TEST_PCI_GET_SEG_INFO:
 		return smccc_test_pci_get_seg_info(arg);
+	case SMCCC_TEST_VERSION_FUNCTION:
+		return smccc_test_version(arg);
+	case SMCCC_TEST_ARCH_FEATURES:
+		return smccc_test_arch_features(arg);
+	case SMCCC_TEST_ARCH_SOC_ID:
+		return smccc_test_arch_soc_id(arg);
 	default:
 		break;
 	}

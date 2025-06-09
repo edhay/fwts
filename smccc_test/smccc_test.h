@@ -29,6 +29,7 @@ struct smccc_test_arg {
 	__u32 w[8];
 };
 
+
 #define SMCCC_TEST_PCI_VERSION \
         _IOWR('p', 0x01, struct smccc_test_arg)
 #define SMCCC_TEST_PCI_FEATURES \
@@ -39,5 +40,10 @@ struct smccc_test_arg {
         _IOWR('p', 0x04, struct smccc_test_arg)
 #define SMCCC_TEST_PCI_GET_SEG_INFO \
         _IOWR('p', 0x05, struct smccc_test_arg)
-
+#define SMCCC_TEST_VERSION_FUNCTION \
+        _IOWR('p', 0x06, struct smccc_test_arg)
+#define SMCCC_TEST_ARCH_FEATURES \
+        _IOWR('p', 0x07, struct smccc_test_arg)
+#define SMCCC_TEST_ARCH_SOC_ID \
+        _IOWR('p', 0x08, struct smccc_test_arg)
 #endif
