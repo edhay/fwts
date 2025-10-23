@@ -84,7 +84,7 @@ static pci_func_id_t pci_func_ids[] = {
 static const char *module_name = "smccc_test";
 static const char *dev_name = "/dev/smccc_test";
 static bool module_loaded;
-static int smccc_fd = -1;
+int smccc_fd = -1;
 
 typedef struct {
 	const uint32_t	SMCCC_func_id;
@@ -103,7 +103,12 @@ static SMCCC_func_id_t SMCCC_func_id_list[] = {
 static uint16_t smccc_major_version = 0;
 static uint16_t smccc_minor_version = 0;
 
-static int smccc_init(fwts_framework *fw)
+int smccc_init(fwts_framework *fw);
+int smccc_deinit(fwts_framework *fw);
+char *smccc_pci_conduit_name(struct smccc_test_arg *arg);
+int smccc_pci_conduit_check(fwts_framework *fw, struct smccc_test_arg *arg);
+
+int smccc_init(fwts_framework *fw)
 {
 	if (fwts_module_load(fw, module_name) != FWTS_OK) {
 		module_loaded = false;
@@ -121,7 +126,7 @@ static int smccc_init(fwts_framework *fw)
 	return FWTS_OK;
 }
 
-static int smccc_deinit(fwts_framework *fw)
+int smccc_deinit(fwts_framework *fw)
 {
 	if (smccc_fd >= 0) {
 		close(smccc_fd);
@@ -140,7 +145,7 @@ static int smccc_deinit(fwts_framework *fw)
  *  smccc_pci_conduit_name()
  *	map the conduit number to human readable string
  */
-static char *smccc_pci_conduit_name(struct smccc_test_arg *arg)
+char *smccc_pci_conduit_name(struct smccc_test_arg *arg)
 {
 	static char unknown[32];
 
@@ -163,7 +168,7 @@ static char *smccc_pci_conduit_name(struct smccc_test_arg *arg)
  *  smccc_pci_conduit_check()
  *	check if conduit number is valid
  */
-static int smccc_pci_conduit_check(fwts_framework *fw, struct smccc_test_arg *arg)
+int smccc_pci_conduit_check(fwts_framework *fw, struct smccc_test_arg *arg)
 {
 	switch (arg->conduit) {
 	case FWTS_SMCCC_CONDUIT_HVC:
